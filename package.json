@@ -1,0 +1,20 @@
+{
+  "name": "water-ripples",
+  "version": "1.0.1",
+  "description": "",
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "scripts": {
+    "start": "parcel src/*.html --open",
+    "build": "parcel build src/*.html --public-url ./"
+  },
+  "dependencies": {
+    "dat.gui": "0.x",
+    "three": "0.x",
+    "water-ripples": "file:"
+  },
+  "devDependencies": {
+    "@parcel/transformer-glsl": "^2.9.3",
+    "parcel": "^2.9.3"
+  },
+  "keywords": []
+}
