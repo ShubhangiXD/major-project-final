@@ -9,8 +9,9 @@
   },
   "dependencies": {
     "dat.gui": "0.x",
-    "three": "0.x",
-    "water-ripples": "file:"
+    "three": "^0.170.0",
+    "water-ripples": "file:",
+    "yuka": "^0.7.8"
   },
   "devDependencies": {
     "@parcel/transformer-glsl": "^2.9.3",
