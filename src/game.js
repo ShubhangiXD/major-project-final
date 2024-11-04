@@ -83,7 +83,10 @@ async function init() {
 
         collectOrb(orb) {
             this.score += orb.value;
+            console.log(`Score updated: ${this.score}`);
             orb.destroy();
+            document.getElementById('score').textContent = `Score: ${this.score}`;
+            spawnOrb(); // Spawn a new orb
         }
     }
 
@@ -133,7 +136,20 @@ async function init() {
 
     const player = new Player();
     const enemies = [new Enemy(), new Enemy(), new Enemy()];
-    const orbs = [new Orb(), new Orb(), new Orb()];
+    const orbs = [];
+
+    function spawnOrb() {
+        const orb = new Orb();
+        orbs.push(orb);
+    }
+
+    function initOrbs() {
+        for (let i = 0; i < 3; i++) {
+            spawnOrb();
+        }
+    }
+
+    initOrbs();
 
     // Handle user input
     const keys = {};
