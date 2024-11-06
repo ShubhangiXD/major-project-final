@@ -11,6 +11,11 @@ async function init() {
     const heightmapFragmentShader = await loadShader('heightmapFragment.glsl');
     const smoothFragmentShader = await loadShader('smoothFragment.glsl');
 
+    // Load image assets
+    const loader = new THREE.TextureLoader();
+    const mosaicTexture = loader.load('assets/mosaic.jpg');
+    const poolsideTexture = loader.load('assets/Poolside3.jpg');
+
     // Set up scene, camera, and renderer
     const scene = new THREE.Scene();
     const aspect = window.innerWidth / window.innerHeight;
@@ -43,11 +48,14 @@ async function init() {
             mouseSize: { value: 1.0 },
             viscosityConstant: { value: 0.98 },
             waveheightMultiplier: { value: 0.1 },
-            resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+            resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            mosaicTexture: { value: mosaicTexture },
+            poolsideTexture: { value: poolsideTexture }
         }
     });
     const plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane.rotation.x = -Math.PI / 2;
+    plane.renderOrder = 0; // Ensure the plane is rendered first
     scene.add(plane);
 
     // Player Class
@@ -60,6 +68,7 @@ async function init() {
                 new THREE.SphereGeometry(0.2, 32, 32),
                 new THREE.MeshBasicMaterial({ color: 0x00ff00 }) 
             );
+            this.mesh.renderOrder = 1; // Ensure the player is rendered on top
             scene.add(this.mesh);
             this.updatePosition();
         }
@@ -95,20 +104,24 @@ async function init() {
         constructor() {
             this.vehicle = new YUKA.Vehicle();
             this.vehicle.position.set(Math.random() * 10 - 5, Math.random() * 10 - 5, 0);
-            this.vehicle.maxSpeed = 2;
+            this.vehicle.maxSpeed = 1;
             entityManager.add(this.vehicle);
 
             this.mesh = new THREE.Mesh(
                 new THREE.SphereGeometry(0.2, 32, 32),
                 new THREE.MeshBasicMaterial({ color: 0xff0000 })
             );
+            this.mesh.renderOrder = 1; // Ensure the enemies are rendered on top
             scene.add(this.mesh);
 
-            // Delay the seek behavior by 5 seconds
-            setTimeout(() => {
-                const seekBehavior = new YUKA.SeekBehavior(player.position);
-                this.vehicle.steering.add(seekBehavior);
-            }, 5000);
+            // Add separation behavior to avoid collisions with other enemies
+            const separationBehavior = new YUKA.SeparationBehavior();
+            separationBehavior.weight = 1.5; // Adjust weight as needed
+            this.vehicle.steering.add(separationBehavior);
+
+            // Add seek behavior to chase the player
+            const seekBehavior = new YUKA.SeekBehavior(player.position);
+            this.vehicle.steering.add(seekBehavior);
         }
 
         update() {
@@ -125,6 +138,7 @@ async function init() {
                 new THREE.SphereGeometry(0.1, 32, 32),
                 new THREE.MeshBasicMaterial({ color: 0xffff00 })
             );
+            this.mesh.renderOrder = 1; // Ensure the orbs are rendered on top
             this.mesh.position.copy(this.position);
             scene.add(this.mesh);
         }
@@ -135,7 +149,13 @@ async function init() {
     }
 
     const player = new Player();
-    const enemies = [new Enemy(), new Enemy(), new Enemy()];
+    const enemies = [];
+    for (let i = 0; i < 3; i++) {
+        const enemy = new Enemy();
+        enemies.push(enemy);
+        entityManager.add(enemy.vehicle);
+    }
+
     const orbs = [];
 
     function spawnOrb() {
