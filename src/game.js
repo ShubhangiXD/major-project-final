@@ -39,7 +39,7 @@ async function init() {
     const entityManager = new YUKA.EntityManager();
     const time = new YUKA.Time();
 
-    // Background Plane with Heightmap Shader
+    // Background Plane with Image Texture
     const planeGeometry = new THREE.PlaneGeometry(10, 10);
     const planeMaterial = new THREE.ShaderMaterial({
         fragmentShader: heightmapFragmentShader,
@@ -119,9 +119,11 @@ async function init() {
             separationBehavior.weight = 1.5; // Adjust weight as needed
             this.vehicle.steering.add(separationBehavior);
 
-            // Add seek behavior to chase the player
-            const seekBehavior = new YUKA.SeekBehavior(player.position);
-            this.vehicle.steering.add(seekBehavior);
+            // Add seek behavior to chase the player after a delay
+            setTimeout(() => {
+                const seekBehavior = new YUKA.SeekBehavior(player.position);
+                this.vehicle.steering.add(seekBehavior);
+            }, 5000); // 5 seconds delay
         }
 
         update() {
@@ -189,8 +191,19 @@ async function init() {
         player.move(direction);
     }
 
+    function showGameOver() {
+        setTimeout(() => {
+            alert('Game Over! Do you want to start a new game?');
+            location.reload(); // Reload the page to start a new game
+        }, 500);
+    }
+
+    let gameOver = false;
+
     // Animation loop
     function animate() {
+        if (gameOver) return;
+
         const delta = time.update().getDelta();
         entityManager.update(delta);
 
@@ -204,6 +217,15 @@ async function init() {
             if (player.position.distanceTo(orb.position) < 0.3) {
                 player.collectOrb(orb);
                 orbs.splice(index, 1);
+            }
+        });
+
+        // Check for collisions with enemies
+        enemies.forEach(enemy => {
+            if (player.position.distanceTo(enemy.vehicle.position) < 0.3) {
+                gameOver = true;
+                showGameOver();
+                return;
             }
         });
 
